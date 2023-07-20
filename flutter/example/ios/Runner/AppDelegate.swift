@@ -5,6 +5,7 @@ import Sentry
 @UIApplicationMain
 @objc class AppDelegate: FlutterAppDelegate {
   private let _channel = "example.flutter.sentry.io"
+  private var _transaction: Span?
 
   override func application(
     _ application: UIApplication,
@@ -35,9 +36,18 @@ import Sentry
         userInfo: ["details": "lots"])
       SentrySDK.capture(exception: exception)
     } else if call.method == "capture_message" {
-      SentrySDK.capture(message: "A message from Swift.")
+      if let transaction = self._transaction {
+        transaction.finish()
+        self._transaction = nil
+      } else {
+        self._transaction = SentrySDK.startTransaction(
+          name: "flutter-swift-transaction",
+          operation: "test"
+        )
+      }
     } else if call.method == "throw" {
       Buggy.throw()
     }
+    result("")
   }
 }
