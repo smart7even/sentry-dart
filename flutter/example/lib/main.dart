@@ -608,6 +608,17 @@ class CocoaExample extends StatelessWidget {
         ElevatedButton(
           onPressed: () async {
             await execute('capture_message');
+            var watch = Stopwatch()..start();
+            // var result = findPrimeNumber(1000000);
+            var result = await Future.wait(List.generate(
+              100,
+              (_) => SentryHttpClient()
+                  .get(Uri.parse('https://flutter.dev/'))
+                  .then((value) => value.contentLength),
+            ));
+            print(
+                "Calculation finished in ${watch.elapsedMilliseconds} ms: ${result}");
+            await execute('capture_message');
           },
           child: const Text('Swift Capture message'),
         ),
@@ -855,4 +866,25 @@ class ThemeProvider extends ChangeNotifier {
 
 Future<void> execute(String method) async {
   await _channel.invokeMethod(method);
+}
+
+int findPrimeNumber(int n) {
+  int count = 0;
+  int a = 2;
+  while (count < n) {
+    int b = 2;
+    bool prime = true; // to check if found a prime
+    while (b * b <= a) {
+      if (a % b == 0) {
+        prime = false;
+        break;
+      }
+      b++;
+    }
+    if (prime) {
+      count++;
+    }
+    a++;
+  }
+  return a - 1;
 }

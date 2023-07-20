@@ -287,6 +287,9 @@ public class SentryFlutterPluginApple: NSObject, FlutterPlugin {
 
                 return event
             }
+
+            options.tracesSampleRate = 1.0
+            options.profilesSampleRate = 1.0
         }
 
        if didReceiveDidBecomeActiveNotification &&

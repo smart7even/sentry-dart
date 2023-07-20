@@ -4,6 +4,7 @@ import Sentry
 
 class MainFlutterWindow: NSWindow {
   private let _channel = "example.flutter.sentry.io"
+  private var _transaction: Span?
 
   override func awakeFromNib() {
     let flutterViewController = FlutterViewController.init()
@@ -22,7 +23,7 @@ class MainFlutterWindow: NSWindow {
     super.awakeFromNib()
   }
 
-    private func handleMessage(call: FlutterMethodCall, result: FlutterResult) {
+    private func handleMessage(call: FlutterMethodCall, result: @escaping FlutterResult) {
         if call.method == "fatalError" {
             fatalError("fatalError")
         } else if call.method == "crash" {
@@ -34,9 +35,18 @@ class MainFlutterWindow: NSWindow {
                 userInfo: ["details": "lots"])
             SentrySDK.capture(exception: exception)
         } else if call.method == "capture_message" {
-            SentrySDK.capture(message: "A message from Swift.")
+            if let transaction = self._transaction {
+                transaction.finish()
+                self._transaction = nil
+            } else {
+                self._transaction = SentrySDK.startTransaction(
+                    name: "flutter-swift-transaction",
+                    operation: "test"
+                )
+            }
         } else if call.method == "throw" {
             Buggy.throw()
         }
+        result("")
     }
 }
